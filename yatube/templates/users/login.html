@@ -1,0 +1,7 @@
+{% extends 'card.html' %}
+
+{% block title %}Войти{% endblock %}
+  {% block card-header %}Войти на сайт{% endblock %}
+  {% block card-body %}
+    {% include 'users/includes/form.html' with button_primary_text='Войти' %}
+  {% endblock %}

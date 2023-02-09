@@ -76,6 +76,9 @@ target/
 
 # Jupyter Notebook
 .ipynb_checkpoints
+/yatube/django_for_jupyter.py
+/yatube/django_shell_sandbox.ipynb
+get-pip.py
 
 # IPython
 profile_default/
@@ -145,8 +148,5 @@ dmypy.json
 
 .mypy_cache
 
-# папки со статикой и медиа
-static/
-yatube/posts/static/
+# Media files
 yatube/media/
-

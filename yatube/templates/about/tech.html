@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}Технологии{% endblock %}
+
+{% load static %}
+{% block content %}
+<div class="card">
+    <div class="card-body">
+      <h3 class="card-title">Твоя лучшая технология - это хороший учитель</h3>
+      <p class="card-text">Найди его вместе с Яндекс Практикум</p>
+      <a href="https://practicum.yandex.ru" class="btn btn-danger">
+        Начать учиться
+      </a>
+    </div>
+    <div class="card-footer text-muted">
+      Не является рекламой
+    </div>
+</div>
+<hr>
+<h4>И не забудь про</h4>
+<div class="card-deck">
+  {% for link in links %}
+    <div class="card mb-8" style="width: 14rem;">
+        <div class="row no-gutters">
+          <div class="col-md-4">
+            <img class="card-img-top"
+              src="
+                {% if link.0 == 'Python' %}
+                  {% static 'img/py_logo.png' %}
+                {% elif link.0 == 'Django' %}
+                  {% static 'img/dj_logo.png' %}
+                {% elif link.0 == 'Bootstrap' %}
+                  {% static 'img/bt_logo.png' %}
+                {% endif %}
+              "
+            alt="">
+          </div>
+          <div class="col-md-8">
+            <div class="card-body">
+              <h5 class="card-title">{{ link.0 }}</h5>
+              <p class="card-text"><a href="{{ link.1 }}" class="btn btn-outline-danger">{{ link.2 }}</a></p>
+            </div>
+          </div>
+        </div>
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}
