@@ -34,7 +34,7 @@ class PostUrlTests(TestCase):
                 'posts/post_detail.html', HTTPStatus.OK
             ),
             '/unexisting_page/': (
-                None, HTTPStatus.NOT_FOUND
+                'core/404.html', HTTPStatus.NOT_FOUND
             ),
         }
         cls.PRIVATE_URLS = {
@@ -44,6 +44,19 @@ class PostUrlTests(TestCase):
             f'/posts/{cls.post.pk}/edit/': (
                 'posts/create_post.html', HTTPStatus.OK
             ),
+            '/follow/': (
+                'posts/follow.html', HTTPStatus.OK
+            ),
+        }
+        cls.PRIVATE_URLS_REDIRECT = {
+            f'/posts/{cls.post.pk}/edit/':
+                f'/posts/{cls.post.pk}/',
+            f'/posts/{cls.post.pk}/comment/':
+                f'/posts/{cls.post.pk}/',
+            f'/profile/{cls.post.author}/follow/':
+                f'/profile/{cls.post.author}/',
+            f'/profile/{cls.post.author}/unfollow/':
+                f'/profile/{cls.post.author}/',
         }
 
     def setUp(self):
@@ -69,22 +82,19 @@ class PostUrlTests(TestCase):
                     response = self.authorized_holder.get(url)
                     self.assertEqual(response.status_code, status[1])
 
+    def test_url_make_right_redirect(self):
+        """Ваше описание"""
+        for url, redirect in self.PRIVATE_URLS_REDIRECT.items():
+            with self.subTest(url=url):
+                response = self.authorized_client.get(url, follow=True)
+                self.assertRedirects(response, redirect)
+
     def test_post_create_redirect(self):
         """Страница создания поста перенаправит анонимного пользователя
         на страницу логина.
         """
         response = self.guest_client.get('/create/', follow=True)
         self.assertRedirects(response, '/auth/login/?next=/create/')
-
-    def test_post_edit_redirect(self):
-        """Страница редактирования перенаправит пользователя
-        на страницу информации о посте, если он не его автор.
-        """
-        response = self.authorized_client.get(
-            f'/posts/{self.post.pk}/edit/',
-            follow=True
-        )
-        self.assertRedirects(response, f'/posts/{self.post.pk}/')
 
     def test_urls_uses_correct_template(self):
         """Url-страница использует верный шаблон"""

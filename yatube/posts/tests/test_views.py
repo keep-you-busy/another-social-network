@@ -81,7 +81,8 @@ class PostViewTests(TestCase):
         self.assertEqual(context.group.title, self.group.title)
         self.assertEqual(context.author, self.post.author)
         self.assertEqual(context.group.pk, self.post.pk)
-        self.assertEqual(media.image, self.post.image)
+        if media is not None:
+            self.assertEqual(media.image, self.post.image)
 
     def test_pages_use_correct_template(self):
         """URL-адрес использует соответствующий шаблон."""
@@ -112,6 +113,18 @@ class PostViewTests(TestCase):
         obj_list = response.context['post']
         obj_media = Post.objects.first()
         self.check_out_context(obj_list, obj_media)
+
+    def test_follow_index_show_right_context(self):
+        """Ваше описание"""
+        Follow.objects.create(
+            user=self.user,
+            author=self.author
+        )
+        response = self.authorized_client.get(
+            reverse('posts:follow_index')
+        )
+        obj_list = response.context['page_obj'][0]
+        self.check_out_context(obj_list, None)
 
     def test_private_pages_show_correct_context(self):
         """Приватные страницы показывают верный контекст"""
@@ -145,18 +158,19 @@ class CaсheTest(TestCase):
             author=self.author,
             text='Тестовый пост'
         )
+        self.REVERSE_INDEX = reverse('posts:index')
 
     def test_cache_index(self):
         """Проверка хранения и очистки кэша для index."""
         index_before = self.guest_client.get(
-            reverse('posts:index')
+            self.REVERSE_INDEX
         ).content
         Post.objects.last().delete()
-        index_after = self.guest_client.get(reverse('posts:index')).content
+        index_after = self.guest_client.get(self.REVERSE_INDEX).content
         self.assertEqual(index_before, index_after)
         cache.clear()
         index_after_clear = self.guest_client.get(
-            reverse('posts:index')
+            self.REVERSE_INDEX
         ).content
         self.assertNotEqual(index_before, index_after_clear)
 
@@ -232,6 +246,20 @@ class FollowTest(TestCase):
             author=cls.author,
             text='Тестовый пост',
         )
+        cls.REVERSE_FOLLOW = reverse(
+            'posts:profile_follow',
+            kwargs={
+                'username':
+                cls.author
+            }
+        )
+        cls.REVERSE_UNFOLLOW = reverse(
+            'posts:profile_unfollow',
+            kwargs={
+                'username':
+                cls.author
+            }
+        )
 
     def setUp(self) -> None:
         self.authorized_follower = Client()
@@ -241,31 +269,13 @@ class FollowTest(TestCase):
 
     def test_follow(self):
         """Ваше описание"""
-        self.authorized_follower.get(reverse(
-            'posts:profile_follow',
-            kwargs={
-                'username':
-                self.author
-            }
-        ))
+        self.authorized_follower.get(self.REVERSE_FOLLOW)
         self.assertEqual(Follow.objects.all().count(), 1)
 
     def test_unfollow(self):
         """Ваше описание"""
-        self.authorized_follower.get(reverse(
-            'posts:profile_follow',
-            kwargs={
-                'username':
-                self.author
-            }
-        ))
-        self.authorized_follower.get(reverse(
-            'posts:profile_unfollow',
-            kwargs={
-                'username':
-                self.author
-            }
-        ))
+        self.authorized_follower.get(self.REVERSE_FOLLOW)
+        self.authorized_follower.get(self.REVERSE_UNFOLLOW)
         self.assertEqual(Follow.objects.all().count(), 0)
 
     def test_apperaing_in_feed(self):

@@ -42,29 +42,6 @@ class PostFormTests(TestCase):
             'group': self.group.pk,
         }
 
-    def test_new_post(self):
-        """Валидная форма создаёт новый пост"""
-        post_count = Post.objects.count()
-        response = self.authorized_holder.post(
-            reverse('posts:post_create'),
-            data=self.form_data,
-            follow=True
-        )
-        self.assertRedirects(
-            response,
-            reverse(
-                'posts:profile',
-                kwargs={'username': self.author}
-            )
-        )
-        self.assertTrue(
-            Post.objects.filter(
-                text='Текст формы',
-                group=self.group.pk
-            ).exists()
-        )
-        self.assertEqual(Post.objects.count(), post_count + 1)
-
     def test_guest_cant_create_new_post(self):
         """Незарегистрированный пользователь не может создать пост"""
         post_count = Post.objects.count()
@@ -114,8 +91,7 @@ class PostFormTests(TestCase):
         self.assertEqual(edit_post.group.pk, new_group.pk)
 
     def test_new_post_with_picture(self):
-        """Зарегистрированный пользователь, при отправке изображения,
-        создаёт запись в БД
+        """Валидная форма создаёт новый пост и отправляет изображение
         """
         Post.objects.all().delete()
         post_count = Post.objects.count()
